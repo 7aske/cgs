@@ -10,8 +10,6 @@
 #include <pthread.h>
 #include <sys/sysinfo.h>
 
-#define println(x){printf("%s\n", x);}
-
 #define REPO_PRINTF  "\033[36;1m%-16s\033[00m \033[32;1m%-16s\033[00m\n"
 #define LANG_PRINTF  "\033[36;1m%-16s\033[00m \033[32;1m%2d\033[00m\n"
 #define LANG_PRINTFN "\033[36;1m%-16s\033[00m \033[32;1m%2d\033[00m \033[31;5;1m%2d\033[00m\n"
@@ -204,11 +202,9 @@ void prtlangs(langf_t* l) {
 		printf("\n");
 	}
 	if (out[0] == '\0') {
-		fprintf(stdout, "\033[01;36mEverything up to date\033[00m");
+		fprintf(stdout, "\033[01;36mEverything up to date\033[00m\n");
 	} else {
-		// fputs("\033[01;36m", stdout);
 		fputs(out, stdout);
-		// fputs("\033[00m", stdout);
 	}
 	free(out);
 	free(buf);
