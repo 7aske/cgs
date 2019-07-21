@@ -10,22 +10,35 @@
 #include <pthread.h>
 #include <sys/sysinfo.h>
 
-#define REPO_PRINTF  "\033[36;1m%-16s\033[00m \033[32;1m%-16s\033[00m\n"
-#define LANG_PRINTF  "\033[36;1m%-16s\033[00m \033[32;1m%2d\033[00m\n"
-#define LANG_PRINTFN "\033[36;1m%-16s\033[00m \033[32;1m%2d\033[00m \033[31;5;1m%2d\033[00m\n"
+#define COLOR_MSG_OK               "\033[01;36mEverything up to date\033[00m\n"
+#define COLOR_REPO_PRINTF          "\033[36;1m%-16s\033[00m \033[32;1m%-16s\033[00m\n"
+#define COLOR_LANG_PRINTF          "\033[36;1m%-16s\033[00m \033[32;1m%2d\033[00m\n"
+#define COLOR_LANG_PRINTFN         "\033[36;1m%-16s\033[00m \033[32;1m%2d\033[00m \033[31;5;1m%2d\033[00m\n"
+#define COLOR_LANG_ROW             "├──\033[36;1m%s\033[00m (%d)\n"
+#define COLOR_LANG_ROW_LAST        "└──\033[36;1m%s\033[00m (%d)\n"
+#define COLOR_REPO_ROW             "│  ├──\033[32;1m%s\033[00m\n"
+#define COLOR_REPO_ROW_END         "│  └──\033[32;1m%s\033[00m\n"
+#define COLOR_REPO_ROW_LAST        "   ├──\033[32;1m%s\033[00m\n"
+#define COLOR_REPO_ROW_LAST_END    "   └──\033[32;1m%s\033[00m\n"
+#define COLOR_REPO_ROW_OK          "│  ├──\033[41;1m%s\033[00m\n"
+#define COLOR_REPO_ROW_END_OK      "│  └──\033[41;1m%s\033[00m\n"
+#define COLOR_REPO_ROW_LAST_OK     "   ├──\033[41;1m%s\033[00m\n"
+#define COLOR_REPO_ROW_LAST_END_OK "   └──\033[41;1m%s\033[00m\n"
 
-#define LANG_ROW      "├──\033[36;1m%s\033[00m (%d)\n"
-#define LANG_ROW_LAST "└──\033[36;1m%s\033[00m (%d)\n"
-
-#define REPO_ROW             "│  ├──\033[32;1m%s\033[00m\n"
-#define REPO_ROW_END         "│  └──\033[32;1m%s\033[00m\n"
-#define REPO_ROW_LAST        "   ├──\033[32;1m%s\033[00m\n"
-#define REPO_ROW_LAST_END    "   └──\033[32;1m%s\033[00m\n"
-
-#define REPO_ROW_OK          "│  ├──\033[41;1m%s\033[00m\n"
-#define REPO_ROW_END_OK      "│  └──\033[41;1m%s\033[00m\n"
-#define REPO_ROW_LAST_OK     "   ├──\033[41;1m%s\033[00m\n"
-#define REPO_ROW_LAST_END_OK "   └──\033[41;1m%s\033[00m\n"
+#define MSG_OK               "Everything up to date\n"
+#define REPO_PRINTF          "%-16s %-16s\n"
+#define LANG_PRINTF          "%-16s %2d\n"
+#define LANG_PRINTFN         "%-16s %2d %2d\n"
+#define LANG_ROW             "├──%s (%d)\n"
+#define LANG_ROW_LAST        "└──%s (%d)\n"
+#define REPO_ROW             "│  ├──%s\n"
+#define REPO_ROW_END         "│  └──%s\n"
+#define REPO_ROW_LAST        "   ├──%s\n"
+#define REPO_ROW_LAST_END    "   └──%s\n"
+#define REPO_ROW_OK          "│  ├──%s\n"
+#define REPO_ROW_END_OK      "│  └──%s\n"
+#define REPO_ROW_LAST_OK     "   ├──%s\n"
+#define REPO_ROW_LAST_END_OK "   └──%s\n"
 
 typedef struct repo {
 	char name[32];
@@ -63,7 +76,7 @@ char* repo_root = NULL;
 const unsigned char LPRT_F = 0b11000000;
 const unsigned char PRT_F = 0b01000000;
 unsigned char FLAGS = 0b00000000;
-
+int COLOR_OUT = 1;
 
 int main(int argc, char* argv[]) {
 	const int T_COUNT = get_nprocs_conf();
@@ -85,6 +98,8 @@ int main(int argc, char* argv[]) {
 			FLAGS |= PRT_F;
 		} else if (strcmp(*argv, "-ll") == 0) {
 			FLAGS |= LPRT_F;
+		} else if (strcmp(*argv, "--no-color") == 0) {
+			COLOR_OUT = 0;
 		}
 		argv++;
 	}
@@ -183,26 +198,46 @@ void prtlangs(langf_t* l) {
 			repo_t* repo = &(lang->repos[j]);
 			if (repo->ok == 0) {
 				lang->not_ok++;
-				sprintf(buf, REPO_PRINTF, repo->lang, repo->name);
+				if (COLOR_OUT) {
+					sprintf(buf, COLOR_REPO_PRINTF, repo->lang, repo->name);
+				} else {
+					sprintf(buf, REPO_PRINTF, repo->lang, repo->name);
+				}
 				strcat(out, buf);
 				memset(buf, 0, 64);
 			}
 		}
 		if (FLAGS == PRT_F) {
 			if (lang->not_ok == 0) {
-				printf(LANG_PRINTF, lang->name, lang->len);
+				if (COLOR_OUT) {
+					printf(COLOR_LANG_PRINTF, lang->name, lang->len);
+				} else {
+					printf(LANG_PRINTF, lang->name, lang->len);
+				}
 			} else {
-				printf(LANG_PRINTFN, lang->name, lang->len, lang->not_ok);
+				if (COLOR_OUT) {
+					printf(COLOR_LANG_PRINTFN, lang->name, lang->len, lang->not_ok);
+				} else {
+					printf(LANG_PRINTFN, lang->name, lang->len, lang->not_ok);
+				}
 			}
 		}
 	}
 
 	if (FLAGS == PRT_F) {
-		printf(LANG_PRINTF, "total", total);
+		if (COLOR_OUT) {
+			printf(COLOR_LANG_PRINTF, "total", total);
+		} else {
+			printf(LANG_PRINTF, "total", total);
+		}
 		printf("\n");
 	}
 	if (out[0] == '\0') {
-		fprintf(stdout, "\033[01;36mEverything up to date\033[00m\n");
+		if (COLOR_OUT) {
+			fprintf(stdout, COLOR_MSG_OK);
+		} else {
+			fprintf(stdout, MSG_OK);
+		}
 	} else {
 		fputs(out, stdout);
 	}
@@ -214,35 +249,75 @@ void prttree(langf_t* l) {
 	for (int i = 0; i < l->len; ++i) {
 		lang_t* lang = &(l->languages[i]);
 		if (i == l->len - 1) {
-			printf(LANG_ROW_LAST, lang->name, lang->len);
+			if (COLOR_OUT) {
+				printf(COLOR_LANG_ROW_LAST, lang->name, lang->len);
+			} else {
+				printf(LANG_ROW_LAST, lang->name, lang->len);
+			}
 		} else {
-			printf(LANG_ROW, lang->name, lang->len);
+			if (COLOR_OUT) {
+				printf(COLOR_LANG_ROW, lang->name, lang->len);
+			} else {
+				printf(LANG_ROW, lang->name, lang->len);
+			}
 		}
 		for (int j = 0; j < lang->len; ++j) {
 			repo_t* repo = &(lang->repos[j]);
 			if (i == l->len - 1 && j == lang->len - 1) {
-				if(repo->ok) {
-					printf(REPO_ROW_LAST_END, repo->name);
+				if (repo->ok) {
+					if (COLOR_OUT) {
+						printf(COLOR_REPO_ROW_LAST_END, repo->name);
+					} else {
+						printf(REPO_ROW_LAST_END, repo->name);
+					}
 				} else {
-					printf(REPO_ROW_LAST_END_OK, repo->name);
+					if (COLOR_OUT) {
+						printf(COLOR_REPO_ROW_LAST_END_OK, repo->name);
+					} else {
+						printf(REPO_ROW_LAST_END_OK, repo->name);
+					}
 				}
 			} else if (i == l->len - 1) {
 				if (repo->ok) {
-					printf(REPO_ROW_LAST, repo->name);
+					if (COLOR_OUT) {
+						printf(COLOR_REPO_ROW_LAST, repo->name);
+					} else {
+						printf(REPO_ROW_LAST, repo->name);
+					}
 				} else {
-					printf(REPO_ROW_LAST_OK, repo->name);
+					if (COLOR_OUT) {
+						printf(COLOR_REPO_ROW_LAST_OK, repo->name);
+					} else {
+						printf(REPO_ROW_LAST_OK, repo->name);
+					}
 				}
 			} else if (j == lang->len - 1) {
 				if (repo->ok) {
-					printf(REPO_ROW_END, repo->name);
+					if (COLOR_OUT) {
+						printf(COLOR_REPO_ROW_END, repo->name);
+					} else {
+						printf(REPO_ROW_END, repo->name);
+					}
 				} else {
-					printf(REPO_ROW_END_OK, repo->name);
+					if (COLOR_OUT) {
+						printf(COLOR_REPO_ROW_END_OK, repo->name);
+					} else {
+						printf(REPO_ROW_END_OK, repo->name);
+					}
 				}
 			} else {
-				if (repo->ok){
-					printf(REPO_ROW, repo->name);
+				if (repo->ok) {
+					if (COLOR_OUT) {
+						printf(COLOR_REPO_ROW, repo->name);
+					} else {
+						printf(REPO_ROW, repo->name);
+					}
 				} else {
-					printf(REPO_ROW_OK, repo->name);
+					if (COLOR_OUT) {
+						printf(COLOR_REPO_ROW_OK, repo->name);
+					} else {
+						printf(REPO_ROW_OK, repo->name);
+					}
 				}
 			}
 		}
