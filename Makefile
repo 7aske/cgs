@@ -7,7 +7,7 @@ VFLAGS=--leak-check=full --show-leak-kinds=all
 default_recipe=cgs
 
 cgs: cgs.c
-	mkdir -p build && $(CC) $(FLAGS) $(SRC) -o $(OUT)
+	mkdir -p build && $(CC) $(SRC) -o $(OUT) $(FLAGS) 
 
 install: cgs
 	sudo ln -s $(shell pwd)/build/cgs /usr/bin/cgs
