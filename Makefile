@@ -10,7 +10,10 @@ cgs: cgs.c
 	mkdir -p build && $(CC) $(FLAGS) $(SRC) -o $(OUT)
 
 install: cgs
-	sudo ln -s $(shell pwd)/build/cgs /usr/bin/cgs
+	sudo cp $(shell pwd)/build/cgs /usr/bin/
+
+uninstall:
+	sudo rm /usr/bin/cgs
 
 val: cgs.c
 	$(CC) $(FLAGS) $(SRC) -o $(OUT) && valgrind $(VFLAGS) $(OUT)

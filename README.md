@@ -95,6 +95,8 @@ category3          repo8
 
 `--no-color` - available to disable color output for usage in other command parsing programs like `exec`/`execp` command in `conky`.
 
+`-d` - outputs the absolute path to the repository. Assumes `--no-color`. Useful for `dmenu` scripting.
+
 ## Build
 
 You can build the program however you like just remember to link `pthread`. There is a `Makefile` with predefined recipes and you can just run them with:

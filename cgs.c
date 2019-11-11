@@ -27,6 +27,7 @@
 
 #define MSG_OK               "Everything up to date\n"
 #define REPO_PRINTF          "%-16s %-16s\n"
+#define REPO_DIR_PRINTF     "%-16s\n"
 #define LANG_PRINTF          "%-16s %2d\n"
 #define LANG_PRINTFN         "%-16s %2d %2d\n"
 #define LANG_ROW             "├──%s (%d)\n"
@@ -73,9 +74,12 @@ void* update_status(void*);
 
 char* repo_root = NULL;
 
-const unsigned char LPRT_F = 0b11000000;
-const unsigned char PRT_F = 0b01000000;
-unsigned char FLAGS = 0b00000000;
+// const unsigned char LPRT_F = 0b11000000;
+// const unsigned char PRT_F = 0b01000000;
+static int LONG_PRINT = 0;
+static int REG_PRINT = 0;
+static int DIR_PRINT = 0;
+// unsigned char FLAGS = 0b00000000;
 int COLOR_OUT = 1;
 
 int main(int argc, char* argv[]) {
@@ -95,11 +99,13 @@ int main(int argc, char* argv[]) {
 
 	while (*argv != NULL) {
 		if (strcmp(*argv, "-l") == 0) {
-			FLAGS |= PRT_F;
+			REG_PRINT = 1;
 		} else if (strcmp(*argv, "-ll") == 0) {
-			FLAGS |= LPRT_F;
+			LONG_PRINT = 1;
 		} else if (strcmp(*argv, "--no-color") == 0) {
 			COLOR_OUT = 0;
+		} else if (strcmp(*argv, "-d") == 0) {
+			DIR_PRINT = 1;
 		}
 		argv++;
 	}
@@ -170,7 +176,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	if (FLAGS == LPRT_F) {
+	if (LONG_PRINT) {
 		prttree(&langs);
 	} else {
 		prtlangs(&langs);
@@ -198,7 +204,9 @@ void prtlangs(langf_t* l) {
 			repo_t* repo = &(lang->repos[j]);
 			if (repo->ok == 0) {
 				lang->not_ok++;
-				if (COLOR_OUT) {
+				if (DIR_PRINT) {
+					sprintf(buf, REPO_DIR_PRINTF, repo->path);
+				} else if (COLOR_OUT) {
 					sprintf(buf, COLOR_REPO_PRINTF, repo->lang, repo->name);
 				} else {
 					sprintf(buf, REPO_PRINTF, repo->lang, repo->name);
@@ -207,7 +215,7 @@ void prtlangs(langf_t* l) {
 				memset(buf, 0, 64);
 			}
 		}
-		if (FLAGS == PRT_F) {
+		if (REG_PRINT) {
 			if (lang->not_ok == 0) {
 				if (COLOR_OUT) {
 					printf(COLOR_LANG_PRINTF, lang->name, lang->len);
@@ -224,7 +232,7 @@ void prtlangs(langf_t* l) {
 		}
 	}
 
-	if (FLAGS == PRT_F) {
+	if (REG_PRINT) {
 		if (COLOR_OUT) {
 			printf(COLOR_LANG_PRINTF, "total", total);
 		} else {
