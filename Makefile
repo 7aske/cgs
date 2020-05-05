@@ -6,6 +6,9 @@ VFLAGS=--leak-check=full --show-leak-kinds=all
 
 default_recipe=cgs
 
+release:
+	mkdir -p build && $(CC) -static -s $(SRC) -o $(OUT) $(FLAGS) 
+
 cgs: cgs.c
 	mkdir -p build && $(CC) $(SRC) -o $(OUT) $(FLAGS) 
 
